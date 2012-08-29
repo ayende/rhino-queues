@@ -209,14 +209,15 @@ namespace Rhino.Queues.Tests
 
             using (var tx = new TransactionScope())
             {
-                var message = receiver.Receive("h", null);
-                Assert.Equal(new byte[] { 1, 2, 4, 5 }, message.Data);
+                var message1 = receiver.Receive("h", null);
+                var message2 = receiver.Receive("h", null);
+                var message3 = receiver.Receive("h", null);
 
-                message = receiver.Receive("h", null);
-                Assert.Equal(new byte[] { 4, 5, 6, 7 }, message.Data);
+                var messageData = new[] { message1.Data, message2.Data, message3.Data };
 
-                message = receiver.Receive("h", null);
-                Assert.Equal(new byte[] { 6, 7, 8, 9 }, message.Data);
+                Assert.Contains(new byte[] { 1, 2, 4, 5 }, messageData);
+                Assert.Contains(new byte[] { 4, 5, 6, 7 }, messageData);
+                Assert.Contains(new byte[] { 6, 7, 8, 9 }, messageData);
 
                 tx.Complete();
             }
