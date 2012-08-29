@@ -22,7 +22,7 @@ namespace Rhino.Queues
 		private static TransactionEnlistment Enlistment;
 
 		[ThreadStatic]
-		private static Transaction CurrentlyEnslistedTransaction;
+		private static Transaction CurrentlyEnlistedTransaction;
 
 		private volatile bool wasDisposed;
 		private volatile int currentlyInCriticalReceiveStatus;
@@ -375,7 +375,7 @@ namespace Rhino.Queues
 
 		public Message Receive(string queueName, string subqueue, TimeSpan timeout)
 		{
-			EnsureEnslistment();
+			EnsureEnlistment();
 
 			var remaining = timeout;
 			while (true)
@@ -403,7 +403,7 @@ namespace Rhino.Queues
 			if (waitingForAllMessagesToBeSent)
 				throw new CannotSendWhileWaitingForAllMessagesToBeSentException("Currently waiting for all messages to be sent, so we cannot send. You probably have a race condition in your application.");
 
-			EnsureEnslistment();
+			EnsureEnlistment();
 
 			var parts = uri.AbsolutePath.Substring(1).Split('/');
 			var queue = parts[0];
@@ -431,16 +431,16 @@ namespace Rhino.Queues
 			};
 		}
 
-		private void EnsureEnslistment()
+		private void EnsureEnlistment()
 		{
 			AssertNotDisposedOrDisposing();
 
 			if (Transaction.Current == null)
 				throw new InvalidOperationException("You must use TransactionScope when using Rhino.Queues");
 
-			if (CurrentlyEnslistedTransaction == Transaction.Current)
+			if (CurrentlyEnlistedTransaction == Transaction.Current)
 				return;
-			// need to change the enslitment
+			// need to change the enlistment
 #pragma warning disable 420
 			Interlocked.Increment(ref currentlyInsideTransaction);
 #pragma warning restore 420
@@ -454,7 +454,7 @@ namespace Rhino.Queues
 				Interlocked.Decrement(ref currentlyInsideTransaction);
 #pragma warning restore 420
 			}, AssertNotDisposed);
-			CurrentlyEnslistedTransaction = Transaction.Current;
+			CurrentlyEnlistedTransaction = Transaction.Current;
 		}
 
 		private PersistentMessage GetMessageFromQueue(string queueName, string subqueue)
@@ -635,7 +635,7 @@ namespace Rhino.Queues
 		public void MoveTo(string subqueue, Message message)
 		{
 			AssertNotDisposedOrDisposing();
-			EnsureEnslistment();
+			EnsureEnlistment();
 
 			queueStorage.Global(actions =>
 			{
@@ -651,7 +651,7 @@ namespace Rhino.Queues
 
 		public void EnqueueDirectlyTo(string queue, string subqueue, MessagePayload payload)
 		{
-			EnsureEnslistment();
+			EnsureEnlistment();
 
 			queueStorage.Global(actions =>
 			{
