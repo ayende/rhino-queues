@@ -12,8 +12,6 @@ properties {
   $uploadCategory = "Rhino-Queues"
   $uploadScript = "C:\Builds\Upload\PublishBuild.build"} 
 
-$framework = '4.0'
-
 include .\psake_ext.ps1
 	
 task default -depends Release
@@ -59,7 +57,7 @@ task Init -depends Clean {
 } 
 
 task Compile -depends Init { 
-  & msbuild "/p:OutDir=""$buildartifacts_dir "" $sln_file"
+  & msbuild /p:OutDir=""$buildartifacts_dir "" $sln_file
 } 
 
 task Test -depends Compile {
