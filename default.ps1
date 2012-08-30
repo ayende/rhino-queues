@@ -7,9 +7,12 @@ properties {
   $version = "1.2.0.0"
   $humanReadableversion = "1.2"
   $tools_dir = "$base_dir\Tools"
+  $xunit = "$base_dir\packages\xunit.runners.1.9.1\tools\xunit.console.clr4.exe"
   $release_dir = "$base_dir\Release"
   $uploadCategory = "Rhino-Queues"
   $uploadScript = "C:\Builds\Upload\PublishBuild.build"} 
+
+$framework = '4.0'
 
 include .\psake_ext.ps1
 	
@@ -56,13 +59,13 @@ task Init -depends Clean {
 } 
 
 task Compile -depends Init { 
-  exec msbuild "/p:OutDir=""$buildartifacts_dir "" $sln_file"
+  & msbuild "/p:OutDir=""$buildartifacts_dir "" $sln_file"
 } 
 
 task Test -depends Compile {
   $old = pwd
   cd $build_dir
-  exec "$tools_dir\xUnit\xunit.console.exe" "$build_dir\Rhino.Queues.Tests.dll"
+  & "$xunit" "$build_dir\Rhino.Queues.Tests.dll"
   cd $old		
 }
 
